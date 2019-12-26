@@ -1,0 +1,15 @@
+{
+    "require": {
+        "tightenco/collect": "^6.9",
+        "stil/gd-text": "^1.1",
+        "laravel/helpers": "^1.1",
+        "ext-gd": "^7.2",
+        "ext-json": "^1.6"
+    },
+
+    "autoload": {
+        "psr-4": {
+            "VoteResultWidget\\":"src/"
+        }
+    }
+}

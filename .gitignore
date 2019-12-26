@@ -1,0 +1,7 @@
+
+
+# Generated PNG files
+/export/*
+
+# Vendors won't be vendin on our watch
+/vendor/*
