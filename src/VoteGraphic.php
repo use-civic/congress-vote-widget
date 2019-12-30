@@ -18,8 +18,18 @@ use Illuminate\Support\Collection;
  */
 class VoteGraphic
 {
+    /**
+     * Width
+     *
+     * @var int The chart width, in pixels
+     */
     public $width;
 
+    /**
+     * Height
+     *
+     * @var int The chart height, in pixels
+     */
     public $height;
 
     /**
@@ -32,7 +42,12 @@ class VoteGraphic
      */
     public $canvas;
 
-    public $pointDiameter = 3;
+    /**
+     * Point Diameter
+     *
+     * @var int The diameter of a point representing a vote, in pixels
+     */
+    public $pointDiameter = 6;
 
     public function __construct($options = null)
     {
@@ -44,6 +59,13 @@ class VoteGraphic
         $this->createBackgroundCanvas();
     }
 
+    /**
+     * Create Background Canvas
+     *
+     * Creates the initial canvas for the graphic, based on set width and height.
+     *
+     * @return $this
+     */
     public function createBackgroundCanvas()
     {
         imagefilledrectangle(
@@ -56,9 +78,17 @@ class VoteGraphic
         return $this;
     }
 
+    /**
+     * Draw Title
+     *
+     * Draws the main title for the graphic (eg VOTE PASSED)
+     *
+     * @param $titleText string
+     * @return $this
+     */
     public function drawTitle($titleText)
     {
-        $fontPath = ROOTPATH . '/data/NotoSans-Bold.ttf';
+        $fontPath = dirname(__FILE__) . '/../data/NotoSans-Bold.ttf';
         $voteLabel = new Box($this->canvas);
         $voteLabel->setFontFace($fontPath);
         $voteLabel->setFontColor(new Color(53, 53, 53));
@@ -66,9 +96,21 @@ class VoteGraphic
         $voteLabel->setBox(0, 0, $this->width, $this->height);
         $voteLabel->setTextAlign('center', 'top');
         $voteLabel->draw($titleText);
+
+        return $this;
     }
 
-    public function drawProgressBar($activeColorRgb, $activePixelWidth)
+    /**
+     * Draw Progress Bar
+     *
+     * Draws a progress bar representing the vote, and how close it was to passing.
+     *
+     * @param $activeColorRgb int The integer returned by `imagecolorallocate` representing a color
+     * @param $activePixelWidth float The pixels representing the active fill color
+     * @param $votePercentageRequired int The percent of votes required for a vote passage
+     * @return $this
+     */
+    public function drawProgressBar($activeColorRgb, $activePixelWidth, $votePercentageRequired)
     {
         // Background box for progress bar
         $voteFillBgColor = imagecolorallocate($this->canvas, 248, 250, 252);
@@ -90,9 +132,23 @@ class VoteGraphic
         );
 
         /**
+         * Draw divider, representing a minimum vote needed for passage
+         */
+        $dividerPng = imagecreatefrompng( dirname(__FILE__) . '/../data/minimum-vote-divider.png');
+        $dividerXValue = $votePercentageRequired * $this->width;
+        imagecolortransparent($dividerPng, imagecolorallocate($dividerPng, 173, 173, 173));
+        imagecopy(
+            $this->canvas,
+            $dividerPng,
+            $dividerXValue, 47,
+            0, 0,
+            1, 39
+        );
+
+        /**
          * Draw Emoji
          */
-        $thumbupEmoji = imagecreatefrompng(ROOTPATH . '/data/emoji-thumbup-whitebg.png');
+        $thumbupEmoji = imagecreatefrompng( dirname(__FILE__) . '/../data/emoji-thumbup-whitebg.png');
         $emojiXValue = $activePixelWidth - 20;
         if ($emojiXValue >= ($this->width - 20)) {
             $emojiXValue = $this->width - 40;
@@ -111,18 +167,45 @@ class VoteGraphic
         return $this;
     }
 
+    /**
+     * Draw Vote Count Label
+     *
+     * Draws a simple `xx - xx` label in the middle of the graphic, representing vote counts.
+     *
+     * @param $labelText string
+     * @return $this
+     */
     public function drawVoteCountLabel($labelText)
     {
-        $fontPath = ROOTPATH . '/data/NotoSans-Bold.ttf';
+        $fontPath =  dirname(__FILE__) . '/../data/NotoSans-Bold.ttf';
         $voteLabel = new Box($this->canvas);
         $voteLabel->setFontFace($fontPath);
         $voteLabel->setFontColor(new Color(53, 53, 53));
-        $voteLabel->setFontSize(26);
-        $voteLabel->setBox(0, 100, $this->width, $this->height);
+        $voteLabel->setFontSize(32);
+        $voteLabel->setBox(0, 125, $this->width, $this->height);
         $voteLabel->setTextAlign('center', 'top');
         $voteLabel->draw($labelText);
+
+        return $this;
     }
 
+    /**
+     * Create Rounded Rectangle
+     *
+     * A helper method to draw a rounded rectangle in GD - which is harder than you'd think!
+     * Sorry for the mess in parameter-hell, I found this on StackOverflow and didn't care to refactor it.
+     *
+     * Such is life.
+     *
+     * @param $im
+     * @param $x
+     * @param $y
+     * @param $cx
+     * @param $cy
+     * @param $rad
+     * @param $col
+     * @return $this
+     */
     function createRoundedRectangle(&$im, $x, $y, $cx, $cy, $rad, $col)
     {
         // Draw the middle cross shape of the rectangle
@@ -140,6 +223,16 @@ class VoteGraphic
         return $this;
     }
 
+    /**
+     * Draw Arc Slice on Canvas
+     *
+     * Draws a slice of the arc on the canvas.
+     *
+     * @param Collection $arcPoints
+     * @param $xPadding int The X padding of the slice
+     * @param $yPadding int The Y padding of the slice
+     * @return $this
+     */
     public function drawArcSliceOnCanvas(Collection $arcPoints, $xPadding, $yPadding)
     {
         foreach ($arcPoints as $arcPoint) {

@@ -5,6 +5,16 @@ namespace VoteResultWidget;
 use Exception;
 use Illuminate\Support\Collection;
 
+/**
+ * Class VoteParser
+ *
+ * Takes a JSON file path and:
+ * 1. Parses it into a Collection
+ * 2. Generates metadata (like if the vote passed, or not)
+ * 3. Provides helper methods for interacting with data
+ *
+ * @package VoteResultWidget
+ */
 class VoteParser
 {
     /**
@@ -42,6 +52,15 @@ class VoteParser
      * @var string h|s
      */
     public $chamber;
+
+    /**
+     * Vote Passage Requirement
+     *
+     * The minimum number of votes needed to pass the vote.
+     *
+     * @var int
+     */
+    public $votePassageRequirement;
 
     /**
      * Parse From File Path
@@ -91,6 +110,39 @@ class VoteParser
         throw new Exception('Unable to get vote result property for vote: ' . data_get($this->data, 'vote_id'));
     }
 
+    /**
+     * Get Votes Requirement
+     *
+     * Parses the JSON file for a vote requirement.
+     * Returns the minimum vote count needed as an int (rounding up where necessary, per rules)
+     *
+     * @return int
+     * @throws Exception
+     */
+    public function getVotesRequirement()
+    {
+        $requirement = data_get($this->data, 'requires');
+
+        if ('1/2' === $requirement) {
+            $this->votePassageRequirement = (int)ceil($this->votes->count() / 2);
+
+            return $this->votePassageRequirement;
+        }
+
+        throw new Exception('Unable to get vote `requires`` property for vote: ' . data_get($this->data, 'vote_id'));
+    }
+
+    /**
+     * Sort Votes
+     *
+     * A sorting method that implements a very specific sort:
+     *
+     * 1. Groups all votes first by party
+     * 2. Sorts votes for each group by Yea votes
+     * 3. Shuffles the last 20% of Yea votes to act as a tool for making gaps look less jarring
+     *
+     * @return $this
+     */
     public function sortVotes()
     {
         $votes = $this->votes;

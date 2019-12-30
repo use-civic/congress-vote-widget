@@ -5,9 +5,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 use VoteResultWidget\VoteParser;
 use VoteResultWidget\GraphicGenerator;
 
-// Define root path so we can export images relative to root
-define('ROOTPATH', dirname(__FILE__));
-
 /**
  * Step 1: Parse votes from the congress.gov JSON file
  */
@@ -24,7 +21,8 @@ $voteParser->sortVotes();
  */
 $graphicGenerator = (new GraphicGenerator())->createHouseGraphic(
     $voteParser->getPassResult(),
-    $voteParser->votes
+    $voteParser->votes,
+    $voteParser->getVotesRequirement()
 );
 
 

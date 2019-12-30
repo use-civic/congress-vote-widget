@@ -60,6 +60,16 @@ class Point
     public $diameter = 3;
 
     /**
+     * Is Filled
+     *
+     * When true, fill the point with the active color.
+     * When false, a white inside is shown to indicate a nay/non-vote
+     *
+     * @var bool
+     */
+    public $isFilled = false;
+
+    /**
      * Set Angle
      *
      * Sets the angle of the point
