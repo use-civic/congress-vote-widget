@@ -4,7 +4,7 @@
 
 This repo shows the code used to generate graphics for a Medium article:
 
-**> Link to article**
+https://medium.com/@zacharyschuessler/design-challenge-congressional-vote-data-df7c85e37af2
 
 Here's what the output looks like:
 
